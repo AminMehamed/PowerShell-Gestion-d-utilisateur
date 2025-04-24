@@ -56,6 +56,7 @@ while ($true){
                               $choice2 = Read-Host "Do you want password?(any key would be considred yes) O/N"
                               if(($choice2.ToLower()) -eq "non" -or ($Choice2.ToLower() -eq "n")){
                                     New-LocalUser -Name $n -NoPassword
+                                    Write-Host "User is Created Successfully"
                                     break
                               }
                              #pass expires....
@@ -100,19 +101,24 @@ while ($true){
             while ($true){
                   $n = Read-Host "Enter le nome d'uitilisateur"
                   if(Get-LocalUser -Name $n -ErrorAction SilentlyContinue){
-                        Write-Host "Press A to Active"
-                        Write-Host "Press D to Desactive"
-                        Write-Host "Press -1 to quite"
-                        $choice = Read-Host "Enter you choice"
+                       
                         for ($i =1 ; $i -lt 4; $i++){
+                              Write-Host "------------------"
+                              Write-Host "Press A to Active"
+                              Write-Host "Press D to Desactive"
+                              Write-Host "Press -1 to quite"
+                              Write-Host "--------------------"
+                              $choice = Read-Host "Enter your choice"
                               if ($choice.ToLower() -eq "a"){
                                     Enable-LocalUser -Name $n
                                     Write-Host "Account Activated successfully"
+                                    $i = 0
                                     break
                               }
                               elseif($choice.ToLower() -eq "d"){
                                     Disable-LocalUser -Name $n
                                     Write-Host "Acount Desabled Successfully"
+                                    $i = 0
                                     break
                               }
                               elseif($choice -eq "-1"){
@@ -120,7 +126,10 @@ while ($true){
                                     break
                               }
                               else{
-                                    Write-Host "Invalid Choice, Try Again..."
+                                    Write-Host "-------------------------------"
+                                    Write-Host "Invalid Choice, Try Again...⚠️"
+                                    Write-Host  "$i/3 trys left🚨🚨 "
+                                    Write-Host "-------------------------------"
                               }
 
                         }
@@ -139,7 +148,22 @@ while ($true){
             }
 
             "5"{
-                  
+                  Write-Host "Press -1 to quite"
+                  while ($true){
+                        $n = Read-Host "Enter le nome d'uitilisateur"
+                        if(Get-LocalUser -Name $n -ErrorAction SilentlyContinue){
+                              Remove-LocalUser -Name $n
+                              Write-Host "User is Deleted Successfully"
+                              break
+                        }
+                        elseif($n -eq "-1"){
+                              break
+                        }
+                        else{
+                              Write-Host "User Doesnt Exist,Try again"
+                        }  
+                  }
+                 
             }
 
             "0" {break}
