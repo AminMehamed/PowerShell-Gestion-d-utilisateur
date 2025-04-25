@@ -2,7 +2,7 @@ Write-Host "Creation And Modification Script"
 
 while ($true){
       Write-Host "`n1. Modifier un utilisateur"
-      Write-Host "2. Creer un utilisateur par-default"
+      Write-Host "2. Creer un utilisateur (simple))"
       Write-Host "3. Créer un utilisateur"
       Write-Host "4.desactive/active une account"
       Write-Host "5. supprimer une account"
@@ -12,6 +12,73 @@ while ($true){
 
       switch ($choice){
             "1" {
+                  write-Host "press -1 to quite"
+                  while ($true){
+                        $n = Read-Host "Enter the name of the user"
+                        if ($n -eq "-1"){break}
+                        elseif (Get-LocalUser -Name $n -ErrorAction SilentlyContinue ){
+                              for ($i =0; $i -lt 4; $i ++){
+                                    Write-Host "------Menu de modifucation-------"
+                                    Write-Host "1.Change Password"
+                                    Write-Host "2.User can change password"
+                                    Write-Host "3.Password Expires"
+                                    Write-Host "-1.Quitte"
+                                    Write-Host "----------------------------------"
+                                    $Mchoice = Read-Host "Enter your choice"
+                                    #add switch option instead of if statments
+                                    switch ($Mchoice) {
+                                          "1" {
+                                          $NewP = Read-Host "Enter New Password" -AsSecureString
+                                          Set-LocalUser -Name $n -Password $NewP 
+                                          Write-Host "Password changed successfully"
+                                                
+                                    }
+                                    "2" {
+                                          Write-Host "--------------------------------"
+                                          Write-Host "1.User Can Change password"
+                                          Write-Host "2.User can not change password"
+                                          Write-Host "--------------------------------"
+                                          $Uchoice = Read-Host "Enter your choice"
+                                          if($Uchoice -eq "1"){
+                                                Set-LocalUser -Name $n -UserMayChangePassword $true
+                                                Write-Host "$n can change its account password now"
+                                          }
+                                          elseif ($Uchoice -eq "2"){
+                                                Set-LocalUser -Name $n -UserMayChangePassword $false
+                                                Write-Host "$n can't change its account password now"
+                                          }
+                                          else{
+                                                Write-Host "Invalid choice..."
+                                          }
+                                    }
+                                    "3"{
+                                          Write-Host "--------------------------------"
+                                          Write-Host "1.Password Expires"
+                                          Write-Host "2.Password doesnt Expire"
+                                          Write-Host "--------------------------------"
+                                          $Echoice = Read-Host "Enter your choice"
+
+                                          if($Echoice -eq "1"){
+                                                Set-LocalUser -Name $n -PasswordNeverExpires $false
+                                                Write-Host "Password Expires"
+                                          }
+                                          elseif ($Echoice -eq "2"){
+                                                Set-LocalUser -Name $n -PasswordNeverExpires $true
+                                                Write-Host "Password doesnt Expire"
+                                          }
+                                          else{
+                                                Write-Host "Invalid choice..."
+                                          }
+                                    }
+
+                                    }
+                                    
+                              }
+                              
+
+                        }else{Write-Host "User Doesnt Exist"}
+
+                  }
 
 
             }
