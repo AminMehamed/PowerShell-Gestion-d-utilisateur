@@ -6,6 +6,7 @@ while ($true){
       Write-Host "3. Créer un utilisateur"
       Write-Host "4.desactive/active une account"
       Write-Host "5. supprimer une account"
+      Write-Host "6. Get User"
       Write-Host "0. Quitter"
       $choice = Read-Host "Veuillez choisir une option"
       if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
@@ -26,6 +27,8 @@ while ($true){
                                     Write-Host "1.Change Password"
                                     Write-Host "2.User can change password"
                                     Write-Host "3.Password Expires"
+                                    Write-Host "4.Change FullName"
+                                    Write-Host "5.Change User Description"
                                     Write-Host "-1.Quitte" -ForegroundColor Yellow
                                     Write-Host "----------------------------------"
                                     $Mchoice = Read-Host "Enter your choice"
@@ -48,12 +51,22 @@ while ($true){
                                                 Write-Host "--------------------------------"
                                                 $Uchoice = Read-Host "Enter your choice"
                                                 if($Uchoice -eq "1"){
-                                                      Set-LocalUser -Name $n -UserMayChangePassword $true
-                                                      Write-Host "$n can change its account password now" -ForegroundColor Green
+                                                      $username = $n
+                                                      $user = [ADSI]"WinNT://$env:COMPUTERNAME/$username,user"
+                                                      $user.UserFlags = $user.UserFlags.Value -band (-bnot 0x40)
+                                                      $user.SetInfo()
+                                                      Write-Host "L'utilisateur $username peut maintenant changer son mot de passe."
                                                 }
                                                 elseif ($Uchoice -eq "2"){
-                                                      Set-LocalUser -Name $n -UserMayChangePassword $false
-                                                      Write-Host "$n can't change its account password now" -ForegroundColor Green
+                                                      # Replace 'UserNameHere' with the actual username
+                                                      $username = $n
+                                                      # Get the local user using ADSI
+                                                      $user = [ADSI]"WinNT://$env:COMPUTERNAME/$username,user"
+                                                      # Add the 'User Cannot Change Password' flag
+                                                      $user.UserFlags = $user.UserFlags.Value -bor 0x40  # 0x40 = UF_PASSWD_CANT_CHANGE
+                                                      $user.SetInfo()
+
+                                                      Write-Host "L'utilisateur $username ne peut plus changer son mot de passe."
                                                 }
                                                 else{
                                                       Write-Host "Invalid choice..." -ForegroundColor Red
@@ -67,15 +80,46 @@ while ($true){
                                                 $Echoice = Read-Host "Enter your choice"
 
                                                 if($Echoice -eq "1"){
-                                                      Set-LocalUser -Name $n -PasswordNeverExpires $false
+                                                      Set-LocalUser -Name $n -PasswordNeverExpires:$false
                                                       Write-Host "Password Expires" -ForegroundColor Green
                                                 }
                                                 elseif ($Echoice -eq "2"){
-                                                      Set-LocalUser -Name $n -PasswordNeverExpires $true
+                                                      Set-LocalUser -Name $n -PasswordNeverExpires:$true
                                                       Write-Host "Password doesnt Expire" -ForegroundColor Green
                                                 }
                                                 else{
                                                       Write-Host "Invalid choice..." -ForegroundColor Red
+                                                }
+                                          }
+                                          "4"{
+                                                for ($i=1 ; $i -lt 4;$i++){
+                                                      $FullN = Read-Host "Enter New Full Name"
+                                                      if ([string]::IsNullOrWhiteSpace($FullN)) {
+                                                            Write-Host "Full Name cannot be empty" -ForegroundColor Red
+                                                            Write-Host "$i/3 rest" -ForegroundColor Yellow
+                                                            continue
+                                                        }
+                                                      elseif ($FullN -match '[\/\\[\]:;|=,+*?<>"]') {
+                                                            Write-Host "Full Name contains invalid characters" -ForegroundColor Red
+                                                            Write-Host "$i/3 rest" -ForegroundColor Yellow
+                                                            continue
+                                                        }else{
+                                                            Set-LocalUser -Name $n -FullName $FullN
+                                                            Write-Host "FullName changed successfully" -ForegroundColor Green
+                                                            break
+
+                                                        }
+                                                      
+
+                                                }
+                                          }
+                                          "5"{
+                                                $d = Read-Host "Enter description"
+                                                try {
+                                                      Set-LocalUser -Name $n -Description $d
+                                                      Write-Host "Success" -ForegroundColor Green
+                                                }catch{
+                                                      Write-Host "Erreur!!!" -ForegroundColor Red
                                                 }
                                           }
 
@@ -132,6 +176,7 @@ while ($true){
             "3"{
                   while ($true){
                         Write-Host "Press -1 to quite"
+                        Write-Host "For adding a a description and fullname to the User you can go to mudification after finishing creating the account" -ForegroundColor Cyan
                         $n = Read-Host "Enter le nom d'utilisateur"
                         if ([string]::IsNullOrWhiteSpace($n)) {
                               Write-Host "Username cannot be empty" -ForegroundColor Red
