@@ -8,6 +8,10 @@ while ($true){
       Write-Host "5. supprimer une account"
       Write-Host "0. Quitter"
       $choice = Read-Host "Veuillez choisir une option"
+      if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+            Write-Host "This script requires administrator privileges. Please run as administrator." -ForegroundColor Red
+            exit
+        }
 
 
       switch ($choice){
@@ -22,61 +26,65 @@ while ($true){
                                     Write-Host "1.Change Password"
                                     Write-Host "2.User can change password"
                                     Write-Host "3.Password Expires"
-                                    Write-Host "-1.Quitte"
+                                    Write-Host "-1.Quitte" -ForegroundColor Yellow
                                     Write-Host "----------------------------------"
                                     $Mchoice = Read-Host "Enter your choice"
                                     #add switch option instead of if statments
                                     switch ($Mchoice) {
+                                          "-1"{
+                                                break
+                                          }
+
                                           "1" {
-                                          $NewP = Read-Host "Enter New Password" -AsSecureString
-                                          Set-LocalUser -Name $n -Password $NewP 
-                                          Write-Host "Password changed successfully"
-                                                
-                                    }
-                                    "2" {
-                                          Write-Host "--------------------------------"
-                                          Write-Host "1.User Can Change password"
-                                          Write-Host "2.User can not change password"
-                                          Write-Host "--------------------------------"
-                                          $Uchoice = Read-Host "Enter your choice"
-                                          if($Uchoice -eq "1"){
-                                                Set-LocalUser -Name $n -UserMayChangePassword $true
-                                                Write-Host "$n can change its account password now"
+                                                $NewP = Read-Host "Enter New Password" -AsSecureString
+                                                Set-LocalUser -Name $n -Password $NewP 
+                                                Write-Host "Password changed successfully" -ForegroundColor Green
+                                                      
                                           }
-                                          elseif ($Uchoice -eq "2"){
-                                                Set-LocalUser -Name $n -UserMayChangePassword $false
-                                                Write-Host "$n can't change its account password now"
+                                          "2" {
+                                                Write-Host "--------------------------------"
+                                                Write-Host "1.User Can Change password" -ForegroundColor Green
+                                                Write-Host "2.User can not change password" -ForegroundColor Yellow
+                                                Write-Host "--------------------------------"
+                                                $Uchoice = Read-Host "Enter your choice"
+                                                if($Uchoice -eq "1"){
+                                                      Set-LocalUser -Name $n -UserMayChangePassword $true
+                                                      Write-Host "$n can change its account password now" -ForegroundColor Green
+                                                }
+                                                elseif ($Uchoice -eq "2"){
+                                                      Set-LocalUser -Name $n -UserMayChangePassword $false
+                                                      Write-Host "$n can't change its account password now" -ForegroundColor Green
+                                                }
+                                                else{
+                                                      Write-Host "Invalid choice..." -ForegroundColor Red
+                                                }
                                           }
-                                          else{
-                                                Write-Host "Invalid choice..."
-                                          }
-                                    }
-                                    "3"{
-                                          Write-Host "--------------------------------"
-                                          Write-Host "1.Password Expires"
-                                          Write-Host "2.Password doesnt Expire"
-                                          Write-Host "--------------------------------"
-                                          $Echoice = Read-Host "Enter your choice"
+                                          "3"{
+                                                Write-Host "--------------------------------"
+                                                Write-Host "1.Password Expires" -ForegroundColor Yellow
+                                                Write-Host "2.Password doesnt Expire" -ForegroundColor Green
+                                                Write-Host "--------------------------------"
+                                                $Echoice = Read-Host "Enter your choice"
 
-                                          if($Echoice -eq "1"){
-                                                Set-LocalUser -Name $n -PasswordNeverExpires $false
-                                                Write-Host "Password Expires"
+                                                if($Echoice -eq "1"){
+                                                      Set-LocalUser -Name $n -PasswordNeverExpires $false
+                                                      Write-Host "Password Expires" -ForegroundColor Green
+                                                }
+                                                elseif ($Echoice -eq "2"){
+                                                      Set-LocalUser -Name $n -PasswordNeverExpires $true
+                                                      Write-Host "Password doesnt Expire" -ForegroundColor Green
+                                                }
+                                                else{
+                                                      Write-Host "Invalid choice..." -ForegroundColor Red
+                                                }
                                           }
-                                          elseif ($Echoice -eq "2"){
-                                                Set-LocalUser -Name $n -PasswordNeverExpires $true
-                                                Write-Host "Password doesnt Expire"
-                                          }
-                                          else{
-                                                Write-Host "Invalid choice..."
-                                          }
-                                    }
 
-                                    }
-                                    
+                                          }
+                                          
                               }
                               
 
-                        }else{Write-Host "User Doesnt Exist"}
+                        }else{Write-Host "User Doesnt Exist" -ForegroundColor Red}
 
                   }
 
@@ -87,18 +95,26 @@ while ($true){
                   while ($true){
                         Write-Host "Press -1 to quite"
                         $n = Read-Host "Enter le nom d'utilisateur"
-                        if($n -eq "-1"){
+                        if ([string]::IsNullOrWhiteSpace($n)) {
+                              Write-Host "Username cannot be empty" -ForegroundColor Red
+                              continue
+                          }
+                        elseif ($n -match '[\/\\[\]:;|=,+*?<>"]') {
+                              Write-Host "Username contains invalid characters" -ForegroundColor Red
+                              continue
+                          }
+                        elseif($n -eq "-1"){
                               break
                         }
                         elseif (Get-LocalUser -Name $n -ErrorAction SilentlyContinue){
-                                 Write-Host "Nom d’utilisateur Existe déjà"
+                                 Write-Host "Nom d’utilisateur Existe déjà" -ForegroundColor Yellow
                         }else{
                               $p = Read-Host "Enter une password" -AsSecureString
 
                              if(New-LocalUser -Name $n -Password $p){
-                                 Write-Host "User is created successfully"
+                                 Write-Host "User is created successfully" -ForegroundColor Green
                               }else{
-                                    Write-Host "Something wrong try again!!!,Open file as adminstrateur and try again"
+                                    Write-Host "Something wrong try again!!!,Open file as adminstrateur and try again" -ForegroundColor Red
                                       }
 
                               if ($n -eq "-1"){
@@ -117,19 +133,27 @@ while ($true){
                   while ($true){
                         Write-Host "Press -1 to quite"
                         $n = Read-Host "Enter le nom d'utilisateur"
-                        if (Get-LocalUser -Name $n -ErrorAction SilentlyContinue){
-                              Write-Host "Nom d’utilisateur Existe déjà"
+                        if ([string]::IsNullOrWhiteSpace($n)) {
+                              Write-Host "Username cannot be empty" -ForegroundColor Red
+                              continue
+                          }
+                        elseif ($n -match '[\/\\[\]:;|=,+*?<>"]') {
+                              Write-Host "Username contains invalid characters" -ForegroundColor Red
+                              continue
+                          }
+                        elseif (Get-LocalUser -Name $n -ErrorAction SilentlyContinue){
+                              Write-Host "Nom d’utilisateur Existe déjà" -ForegroundColor DarkBlue
                         }else{
                               $choice2 = Read-Host "Do you want password?(any key would be considred yes) O/N"
                               if(($choice2.ToLower()) -eq "non" -or ($Choice2.ToLower() -eq "n")){
                                     New-LocalUser -Name $n -NoPassword
-                                    Write-Host "User is Created Successfully"
+                                    Write-Host "User is Created Successfully" -ForegroundColor Green
                                     break
                               }
                              #pass expires....
                               $Pass = Read-Host "Enter password" -AsSecureString
                               New-LocalUser -Name $n -Password $Pass
-                              Write-Host "pressing any key other than n would be considred yes"
+                              Write-Host "pressing any key other than n would be considred yes" -ForegroundColor Yellow
                               $choice3 = Read-Host "Do you want the user to be able to change his password O/N"
                               if ($choice3.ToLower() -eq "n" -or $choice3.ToLower() -eq "non"){
                                     Set-LocalUser -Name $n -UserMayNotChangePassword $true
@@ -142,15 +166,15 @@ while ($true){
                               
                               try{
                                     if (Get-LocalUser -Name $n ){
-                                          Write-Host "User $n is Created sussessfully"
+                                          Write-Host "User $n is Created sussessfully" -ForegroundColor Green
                                           break
                                     }else{
-                                          Write-Host "Something went Wrong, Run script Again"
+                                          Write-Host "Something went Wrong, Run script Again" -ForegroundColor Red
                                           break
                                     }
 
                               }catch{
-                                    Write-Host "Erreur!!!, Contact Admin"
+                                    Write-Host "Erreur!!!, Contact Admin" -ForegroundColor Red
 
                               }
                               
@@ -178,23 +202,23 @@ while ($true){
                               $choice = Read-Host "Enter your choice"
                               if ($choice.ToLower() -eq "a"){
                                     Enable-LocalUser -Name $n
-                                    Write-Host "Account Activated successfully"
+                                    Write-Host "Account Activated successfully" -ForegroundColor Green
                                     $i = 0
                                     break
                               }
                               elseif($choice.ToLower() -eq "d"){
                                     Disable-LocalUser -Name $n
-                                    Write-Host "Acount Desabled Successfully"
+                                    Write-Host "Acount Desabled Successfully" -ForegroundColor Green
                                     $i = 0
                                     break
                               }
                               elseif($choice -eq "-1"){
-                                    Write-Host "Quitting..."
+                                    Write-Host "Quitting..." -ForegroundColor Yellow
                                     break
                               }
                               else{
                                     Write-Host "-------------------------------"
-                                    Write-Host "Invalid Choice, Try Again...⚠️"
+                                    Write-Host "Invalid Choice, Try Again...⚠️" -ForegroundColor Red
                                     Write-Host  "$i/3 trys left🚨🚨 "
                                     Write-Host "-------------------------------"
                               }
@@ -207,7 +231,7 @@ while ($true){
                         
                   }
                   else{
-                        Write-Host "User doesnt exist try again"
+                        Write-Host "User doesnt exist try again" -ForegroundColor Yellow
                   }
 
             }
@@ -220,20 +244,20 @@ while ($true){
                         $n = Read-Host "Enter le nome d'uitilisateur"
                         if(Get-LocalUser -Name $n -ErrorAction SilentlyContinue){
                               Remove-LocalUser -Name $n
-                              Write-Host "User is Deleted Successfully"
+                              Write-Host "User is Deleted Successfully" -ForegroundColor Green
                               break
                         }
                         elseif($n -eq "-1"){
                               break
                         }
                         else{
-                              Write-Host "User Doesnt Exist,Try again"
+                              Write-Host "User Doesnt Exist,Try again" -ForegroundColor Yellow
                         }  
                   }
                  
             }
 
-            "0" {break}
-            default {Write-Host "Choix invalide. Reessayez."}
+            "0" {exit}
+            default {Write-Host "Choix invalide. Reessayez." -ForegroundColor Yellow}
       }
 }
