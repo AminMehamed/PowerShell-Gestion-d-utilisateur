@@ -1,12 +1,12 @@
 Write-Host "Creation And Modification Script"
-
-while ($true){
+$exitt = $true
+while ($exitt){
       Write-Host "`n1. Modifier un utilisateur"
       Write-Host "2. Creer un utilisateur (simple))"
       Write-Host "3. Créer un utilisateur"
       Write-Host "4.desactive/active une account"
       Write-Host "5. supprimer une account"
-      Write-Host "6. Get User"
+      Write-Host "6. Get list of Users"
       Write-Host "0. Quitter"
       $choice = Read-Host "Veuillez choisir une option"
       if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
@@ -301,8 +301,64 @@ while ($true){
                   }
                  
             }
+            "6"{
+                  $exit = $false
+                  while (-not $exit) {
+                        #We have to fix this later...
+                        Write-Host "It may not show any users in the first time, so try 3 time for exact result" -ForegroundColor Yellow
+                        Write-Host "----------------------------"
+                        Write-Host "1.Show all users"
+                        Write-Host "2.Show a spesific User"
+                        Write-Host "-1.Quitte" -ForegroundColor Yellow
+                        Write-Host "-------------------------------"
+                        $choice = Read-Host "Enter your choice"
+                        switch ($choice){
+                              "1"{
+                                    #WE have to add error checking
+                                    Write-Host "Getting list of users..." -ForegroundColor Green
+                                    $users = Get-LocalUser 
+                                    Write-Host "Users Loaded: $($users.Count)🧑‍🦰" -ForegroundColor Cyan
+                                    Get-LocalUser 
+                              }
+                              "2"{
+                                    $n = Read-Host "Enter the name of the user"
+                                    if (Get-LocalUser -Name $n -ErrorAction SilentlyContinue){
+                                          Write-Host "User exists" -ForegroundColor Green
+                                          Get-LocalUser -Name $n
+                                          
+                                          
+                                    }
+                                    elseif($n -eq ""){
+                                          Write-Host "User cant be null" -ForegroundColor Red
+                                    }
+                                    else{
+                                          if (Get-LocalUser -Name "$($n[0])*" -ErrorAction SilentlyContinue){
+                                                Write-Host "its workin $($n[0])"
+                                                Write-Host "We couldnt find any user with name $n,So these are the users that their name start with the same letter" -ForegroundColor Green
+                                                $Lusers = Get-LocalUser -Name "$($n[0])*"
+                                                Write-Host "Users Loaded: $($Lusers.Count)"
+                                                Get-LocalUser -Name "$($n[0])*"
+                                                
+                                                }
+                                          else{
+                                                Write-Host "We Coudnt find any Users...😥"
 
-            "0" {exit}
+                                          }
+                                    }
+
+                              }
+
+                              "-1"{
+                                    Write-Output "Quitting... " -ForegroundColor Yellow
+                                    $exit = $true
+                              }
+
+                              default { Write-Host "Invalid choice try again " -ForegroundColor Red}
+                        }
+                  }
+            }
+
+            "0" {$exitt = $false}
             default {Write-Host "Choix invalide. Reessayez." -ForegroundColor Yellow}
       }
 }
