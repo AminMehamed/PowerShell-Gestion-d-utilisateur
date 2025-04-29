@@ -35,7 +35,9 @@ while ($exitt){
                                     #add switch option instead of if statments
                                     switch ($Mchoice) {
                                           "-1"{
+                                                $i = 5
                                                 break
+                                                
                                           }
 
                                           "1" {
@@ -355,7 +357,7 @@ while ($exitt){
 
                               default { Write-Host "Invalid choice try again " -ForegroundColor Red}
                         }
-                  }
+                  }6
             }
 
             "0" {$exitt = $false}
